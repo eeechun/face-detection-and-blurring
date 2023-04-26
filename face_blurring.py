@@ -42,7 +42,7 @@ def pixelization(image, file_name, faces, size):
 
         pixel_img[y:y+roi.shape[0], x:x+roi.shape[1]] = roi
 
-    # 儲存圖片
+    # save inage
     cv2.imwrite(f'pixel/{size}/{file_name}', pixel_img)
 
 def img_resize(img, size, padColor):
@@ -56,7 +56,7 @@ def img_resize(img, size, padColor):
         interp = cv2.INTER_CUBIC
 
     # aspect ratio of image
-    aspect = w/h  # if on Python 2, you might need to cast as a float: float(w)/h
+    aspect = w/h
 
     # compute scaling and pad sizing
     if aspect > 1: # horizontal image
