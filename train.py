@@ -10,8 +10,8 @@ from PIL import Image
 # This is for the progress bar.
 from tqdm.auto import tqdm
 
+# %%
 # parameters
-# The number of training epochs and patience.
 batch_size = 4
 n_epochs = 15
 # n_epochs = 0  # to get statistics (control whether to train)
@@ -79,7 +79,6 @@ class mydataset(Dataset):
         fname = self.files[idx]
         im = Image.open(fname)
         im = self.transform(im)
-        # im = self.data[idx]
         try:
             label = int(fname.split("s")[-1].split("_")[0])
         except:
@@ -88,8 +87,6 @@ class mydataset(Dataset):
 
 
 # %%
-
-
 train_set = mydataset(train_set_dir, tfm=transform)
 test_set = mydataset(test_set_dir, tfm=transform)
 
@@ -99,7 +96,6 @@ train_loader = DataLoader(
 test_loader = DataLoader(
     test_set, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True
 )
-
 
 # %%
 class Net(nn.Module):
@@ -147,7 +143,6 @@ net = Net()
 torch.cuda.is_available = lambda: False
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
 # Initialize a model, and put it on the device specified.
 model = Net().to(device)
 
@@ -172,14 +167,10 @@ for epoch in range(n_epochs):
         # A batch consists of image data and corresponding labels.
         imgs, labels = batch
 
-        # imgs = imgs.half()
-        # print(imgs.shape,labels.shape)
-
         # Forward the data. (Make sure data and model are on the same device.)
         logits = model(imgs.to(device))
 
         # Calculate the cross-entropy loss.
-        # We don't need to apply softmax before computing cross-entropy as it is done automatically.
         loss = criterion(logits, labels.to(device))
 
         # Gradients stored in the parameters in the previous step should be cleared out first.
@@ -209,21 +200,21 @@ for epoch in range(n_epochs):
         f"[ Train | {epoch + 1:03d}/{n_epochs:03d} ] loss = {train_loss:.5f}, acc = {train_acc:.5f}"
     )
 
-    # ---------- Validation ----------
+    # ---------- Testing ----------
     # Make sure the model is in eval mode so that some modules like dropout are disabled and work normally.
     model.eval()
 
-    # These are used to record information in validation.
+    # These are used to record information in testing.
     test_loss = []
     test_accs = []
 
-    # Iterate the validation set by batches.
+    # Iterate the testing set by batches.
     for batch in tqdm(test_loader):
         # A batch consists of image data and corresponding labels.
         imgs, labels = batch
         # imgs = imgs.half()
 
-        # We don't need gradient in validation.
+        # We don't need gradient in testing.
         # Using torch.no_grad() accelerates the forward process.
         with torch.no_grad():
             logits = model(imgs.to(device))
@@ -239,7 +230,7 @@ for epoch in range(n_epochs):
         test_accs.append(acc)
         # break
 
-    # The average loss and accuracy for entire validation set is the average of the recorded values.
+    # The average loss and accuracy for entire testing set is the average of the recorded values.
     test_loss = sum(test_loss) / len(test_loss)
     test_acc = sum(test_accs) / len(test_accs)
 
