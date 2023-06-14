@@ -6,6 +6,8 @@ from torch.utils.data import Dataset, DataLoader
 import os
 import numpy as np
 from PIL import Image
+import torchvision.utils
+import matplotlib.pyplot as plt
 
 # This is for the progress bar.
 from tqdm.auto import tqdm
@@ -16,7 +18,7 @@ batch_size = 4
 n_epochs = 10
 # n_epochs = 0  # to get statistics (control whether to train)
 patience = 5  # If no improvement in 'patience' epochs, early stop
-print(batch_size)
+
 ## blur
 ### b15
 # train_set_dir = "blur/15/train"
@@ -145,23 +147,30 @@ class Net(nn.Module):
 net = Net()
 
 # %%
-# adversarial attack
 def fgsm_attack(model, loss, images, labels, eps) :
+# adversarial attack
     
     images = images.to(device)
     labels = labels.to(device)
     images.requires_grad = True
-            
+
     outputs = model(images)
     
-    model.zero_grad()
     cost = loss(outputs, labels).to(device)
+    model.zero_grad()
     cost.backward()
-    
+
     attack_images = images + eps*images.grad.sign()
-    attack_images = torch.clamp(attack_images, 0, 1)
+    attack_images = torch.clamp(attack_images, -1, 1)
     
     return attack_images
+
+#%%
+def imshow(img):
+    npimg = img.numpy()
+    fig = plt.figure(figsize = (5, 15))
+    plt.imshow(np.transpose(npimg,(1,2,0)))
+    plt.show()
 
 # %%
 torch.cuda.is_available = lambda: False
@@ -169,6 +178,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Initialize a model, and put it on the device specified.
 model = Net().to(device)
+model.load_state_dict(torch.load(model_path))
+
 
 # For the classification task, we use cross-entropy as the measurement of performance.
 criterion = nn.CrossEntropyLoss()
@@ -179,53 +190,53 @@ stale = 0
 best_acc = 0
 
 for epoch in range(n_epochs):
-    # ---------- Training ----------
-    # Make sure the model is in train mode before training.
-    model.train()
-
-    # These are used to record information in training.
-    train_loss = []
-    train_accs = []
-
-
-    for batch in tqdm(train_loader):
-        # A batch consists of image data and corresponding labels.
-        images, labels = batch
-        # images = fgsm_attack(model, criterion, images, labels, 0.3).to(device)
-        # images, labels = batch
-
-        # Forward the data. (Make sure data and model are on the same device.)
-        logits = model(images.to(device))
-
-        # Calculate the cross-entropy loss.
-        loss = criterion(logits, labels.to(device))
-
-        # Gradients stored in the parameters in the previous step should be cleared out first.
-        optimizer.zero_grad()
-
-        # Compute the gradients for parameters.
-        loss.backward()
-
-        # Clip the gradient norms for stable training.
-        grad_norm = nn.utils.clip_grad_norm_(model.parameters(), max_norm=10)
-
-        # Update the parameters with computed gradients.
-        optimizer.step()
-
-        # Compute the accuracy for current batch.
-        acc = (logits.argmax(dim=-1) == labels.to(device)).float().mean()
-
-        # Record the loss and accuracy.
-        train_loss.append(loss.item())
-        train_accs.append(acc)
-
-    train_loss = sum(train_loss) / len(train_loss)
-    train_acc = sum(train_accs) / len(train_accs)
-
-    # Print the information.
-    print(
-        f"[ Train | {epoch + 1:03d}/{n_epochs:03d} ] loss = {train_loss:.5f}, acc = {train_acc:.5f}"
-    )
+    ## ---------- Training ----------
+    ## Make sure the model is in train mode before training.
+    #model.train()
+#
+    ## These are used to record information in training.
+    #train_loss = []
+    #train_accs = []
+#
+#
+    #for batch in tqdm(train_loader):
+    #    # A batch consists of image data and corresponding labels.
+    #    images, labels = batch
+    #    # images = fgsm_attack(model, criterion, images, labels, 0.3).to(device)
+    #    # images, labels = batch
+#
+    #    # Forward the data. (Make sure data and model are on the same device.)
+    #    logits = model(images.to(device))
+#
+    #    # Calculate the cross-entropy loss.
+    #    loss = criterion(logits, labels.to(device))
+#
+    #    # Gradients stored in the parameters in the previous step should be cleared out first.
+    #    optimizer.zero_grad()
+#
+    #    # Compute the gradients for parameters.
+    #    loss.backward()
+#
+    #    # Clip the gradient norms for stable training.
+    #    grad_norm = nn.utils.clip_grad_norm_(model.parameters(), max_norm=10)
+#
+    #    # Update the parameters with computed gradients.
+    #    optimizer.step()
+#
+    #    # Compute the accuracy for current batch.
+    #    acc = (logits.argmax(dim=-1) == labels.to(device)).float().mean()
+#
+    #    # Record the loss and accuracy.
+    #    train_loss.append(loss.item())
+    #    train_accs.append(acc)
+#
+    #train_loss = sum(train_loss) / len(train_loss)
+    #train_acc = sum(train_accs) / len(train_accs)
+#
+    ## Print the information.
+    #print(
+    #    f"[ Train | {epoch + 1:03d}/{n_epochs:03d} ] loss = {train_loss:.5f}, acc = {train_acc:.5f}"
+    #)
 
     # ---------- Testing ----------
     # Make sure the model is in eval mode so that some modules like dropout are disabled and work normally.
@@ -237,11 +248,12 @@ for epoch in range(n_epochs):
 
     # Iterate the testing set by batches.
     for batch in tqdm(test_loader):
-        # A batch consists of image data and corresponding labels.
-        images, labels = batch
 
-        images = fgsm_attack(model, criterion, images, labels, 0.3).to(device)
         images, labels = batch
+        #imshow(torchvision.utils.make_grid(images, normalize=True))
+
+        #images = fgsm_attack(model, criterion, images, labels, 0).to(device)
+        #imshow(torchvision.utils.make_grid(images, normalize=True))
 
         with torch.no_grad():
             logits = model(images.to(device))
@@ -267,17 +279,17 @@ for epoch in range(n_epochs):
     )
 
 
-    # save models
-    if test_acc > best_acc:
-        stale = 0
-        best_acc = test_acc
-        torch.save(model.state_dict(), model_path)
-        print("saving model with acc {:.3f}".format(best_acc))
-    else:
-        stale += 1
-        if stale > patience:
-            print(f"No improvment {patience} consecutive epochs, early stopping")
-            break
+    ## save models
+    #if test_acc > best_acc:
+    #    stale = 0
+    #    best_acc = test_acc
+    #    torch.save(model.state_dict(), model_path)
+    #    print("saving model with acc {:.3f}".format(best_acc))
+    #else:
+    #    stale += 1
+    #    if stale > patience:
+    #        print(f"No improvment {patience} consecutive epochs, early stopping")
+    #        break
 
     # if not testing, save the last epoch
     if len(test_loader) == 0:
