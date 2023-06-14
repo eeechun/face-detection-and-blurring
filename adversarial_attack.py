@@ -252,7 +252,7 @@ for epoch in range(n_epochs):
         images, labels = batch
         #imshow(torchvision.utils.make_grid(images, normalize=True))
 
-        #images = fgsm_attack(model, criterion, images, labels, 0).to(device)
+        images = fgsm_attack(model, criterion, images, labels, 0).to(device)
         #imshow(torchvision.utils.make_grid(images, normalize=True))
 
         with torch.no_grad():
