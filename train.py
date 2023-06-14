@@ -54,7 +54,7 @@ transform = transforms.Compose(
     [
         transforms.ToTensor(),
         transforms.Resize((128, 128), antialias=True),
-        transforms.Normalize((0.5), (0.5)),
+        transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5)),
     ]
 )
 
@@ -102,7 +102,7 @@ class Net(nn.Module):
     def __init__(self):
         super().__init__()
         self.cnn = nn.Sequential(
-            nn.Conv2d(1, 64, 1, 1, 1),  # [64, 128, 128]
+            nn.Conv2d(3, 64, 3, 1, 1),  # [64, 128, 128]
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),  # [64, 64, 64]
