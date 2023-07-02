@@ -16,7 +16,6 @@ from tqdm.auto import tqdm
 # parameters
 batch_size = 4
 n_epochs = 10
-# n_epochs = 0  # to get statistics (control whether to train)
 patience = 5  # If no improvement in 'patience' epochs, early stop
 
 ## blur
@@ -230,7 +229,6 @@ for epoch in range(n_epochs):
     print(
         f"[ Test | {epoch + 1:03d}/{n_epochs:03d} ] loss = {test_loss:.5f}, acc = {test_acc:.5f}"
     )
-
 
     # if not testing, save the last epoch
     if len(test_loader) == 0:
