@@ -4,18 +4,18 @@ import os
 import numpy as np
 
 
-def frontface_detection(image):
-    face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-    faces = face_cascade.detectMultiScale(image, 1.2, 2)
-
-    return faces
-
-
-def profileface_detection(image):
-    face_cascade = cv2.CascadeClassifier("haarcascade_profileface.xml")
-    faces = face_cascade.detectMultiScale(image, 1.5, 2)
-
-    return faces
+#def frontface_detection(image):
+#    face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+#    faces = face_cascade.detectMultiScale(image, 1.2, 2)
+#
+#    return faces
+#
+#
+#def profileface_detection(image):
+#    face_cascade = cv2.CascadeClassifier("haarcascade_profileface.xml")
+#    faces = face_cascade.detectMultiScale(image, 1.5, 2)
+#
+#    return faces
 
 def add_noise(image, epsilon, m, b):
     sensitivity = (255 * m) / (b ** 2)
@@ -50,7 +50,7 @@ def blurring(image, file_name, faces, k, eps, b0):
         blur_img[y : y + roi.shape[0], x : x + roi.shape[1]] = roi
 
     # save image
-    cv2.imwrite(f"dp/blur/{k}/{eps}/{file_name}", blur_img)
+    cv2.imwrite(f"dp/blur_withoutgray/{k}/{eps}/{file_name}", blur_img)
 
 
 def pixelization(image, file_name, faces, size, eps):
@@ -70,7 +70,7 @@ def pixelization(image, file_name, faces, size, eps):
         pixel_img[y : y + roi.shape[0], x : x + roi.shape[1]] = roi
 
     # save image
-    cv2.imwrite(f"dp/pixel/{size}/{eps}/{file_name}", pixel_img)
+    cv2.imwrite(f"dp/pixel_withoutgray/{size}/{eps}/{file_name}", pixel_img)
 
 def img_resize(img, size, padColor):
     h, w = img.shape[:2]
@@ -113,7 +113,6 @@ def img_resize(img, size, padColor):
     return scaled_img
 
 if __name__ == "__main__":
-    # folder_path = "img/"
     folder_path = "att_img_flat/"
 
     # iterate every image in the folder
@@ -121,7 +120,7 @@ if __name__ == "__main__":
         if file_name.endswith(".png"):
             # read image
             img_path = os.path.join(folder_path, file_name)
-            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+            img = cv2.imread(img_path)
 
             #resize
             img = img_resize(img, (128,128), 0)
@@ -132,6 +131,7 @@ if __name__ == "__main__":
             # process image
             if len(faces) != 0:
                 blurring(img, file_name, faces, 15, 0.001, 4)
+                blurring(img, file_name, faces, 15, 0.01, 4)
                 blurring(img, file_name, faces, 15, 0.1, 4)
                 blurring(img, file_name, faces, 15, 1, 4)
 
@@ -142,8 +142,8 @@ if __name__ == "__main__":
                 blurring(img, file_name, faces, 99, 0.001, 4)
                 blurring(img, file_name, faces, 99, 0.1, 4)
                 blurring(img, file_name, faces, 99, 1, 4)
-
                 pixelization(img, file_name, faces, 4, 0.001)
+                pixelization(img, file_name, faces, 4, 0.01)
                 pixelization(img, file_name, faces, 4, 0.1)
                 pixelization(img, file_name, faces, 4, 1)
 
