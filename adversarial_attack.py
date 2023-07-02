@@ -190,53 +190,6 @@ stale = 0
 best_acc = 0
 
 for epoch in range(n_epochs):
-    ## ---------- Training ----------
-    ## Make sure the model is in train mode before training.
-    #model.train()
-#
-    ## These are used to record information in training.
-    #train_loss = []
-    #train_accs = []
-#
-#
-    #for batch in tqdm(train_loader):
-    #    # A batch consists of image data and corresponding labels.
-    #    images, labels = batch
-    #    # images = fgsm_attack(model, criterion, images, labels, 0.3).to(device)
-    #    # images, labels = batch
-#
-    #    # Forward the data. (Make sure data and model are on the same device.)
-    #    logits = model(images.to(device))
-#
-    #    # Calculate the cross-entropy loss.
-    #    loss = criterion(logits, labels.to(device))
-#
-    #    # Gradients stored in the parameters in the previous step should be cleared out first.
-    #    optimizer.zero_grad()
-#
-    #    # Compute the gradients for parameters.
-    #    loss.backward()
-#
-    #    # Clip the gradient norms for stable training.
-    #    grad_norm = nn.utils.clip_grad_norm_(model.parameters(), max_norm=10)
-#
-    #    # Update the parameters with computed gradients.
-    #    optimizer.step()
-#
-    #    # Compute the accuracy for current batch.
-    #    acc = (logits.argmax(dim=-1) == labels.to(device)).float().mean()
-#
-    #    # Record the loss and accuracy.
-    #    train_loss.append(loss.item())
-    #    train_accs.append(acc)
-#
-    #train_loss = sum(train_loss) / len(train_loss)
-    #train_acc = sum(train_accs) / len(train_accs)
-#
-    ## Print the information.
-    #print(
-    #    f"[ Train | {epoch + 1:03d}/{n_epochs:03d} ] loss = {train_loss:.5f}, acc = {train_acc:.5f}"
-    #)
 
     # ---------- Testing ----------
     # Make sure the model is in eval mode so that some modules like dropout are disabled and work normally.
@@ -278,18 +231,6 @@ for epoch in range(n_epochs):
         f"[ Test | {epoch + 1:03d}/{n_epochs:03d} ] loss = {test_loss:.5f}, acc = {test_acc:.5f}"
     )
 
-
-    ## save models
-    #if test_acc > best_acc:
-    #    stale = 0
-    #    best_acc = test_acc
-    #    torch.save(model.state_dict(), model_path)
-    #    print("saving model with acc {:.3f}".format(best_acc))
-    #else:
-    #    stale += 1
-    #    if stale > patience:
-    #        print(f"No improvment {patience} consecutive epochs, early stopping")
-    #        break
 
     # if not testing, save the last epoch
     if len(test_loader) == 0:
